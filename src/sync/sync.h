@@ -12,7 +12,18 @@
 
 #include<pthread.h>
 
-class Locker{};
-class Sem{};
+class Locker
+{
+public:
+    void lock();
+    void unlock();
+};
+
+class Sem
+{
+public:
+    void post();
+    void wait();
+};
 
 #endif

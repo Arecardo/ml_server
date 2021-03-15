@@ -13,8 +13,13 @@ class ClassifyTask
 private:
     /* data */
 public:
+    /* constructor and deconstructor */
     ClassifyTask(/* args */);
     ~ClassifyTask();
+
+    /* handle the task */
+    void process();
+
 };
 
 ClassifyTask::ClassifyTask(/* args */)

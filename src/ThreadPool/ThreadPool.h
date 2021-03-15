@@ -12,9 +12,12 @@
 #include <exception> 
 #include <pthread.h>
 #include <string.h>
+#include <iostream>
 
 #include "../sync/sync.h"                       /* need modify here */
 #include "../ClassifyTask/ClassifyTask.h"       /* need modify here */
+#include "../ml/MlpClassifier.h"                /* need modify here */
+#include "../ml/TfidfVectorizer.h"              /* need modify here */
 
 class ThreadPool
 {
@@ -24,7 +27,7 @@ public:
     ~ThreadPool();
 
     /* append request interface */
-    bool append();
+    bool append(ClassifyTask* task);
 
 private:
     /* 工作线程运行的函数，它不断从工作队列中取出任务并执行之 */
@@ -84,6 +87,74 @@ ThreadPool::~ThreadPool()
 {   
     /* just delete the thread array */
     delete[] m_threads;
+}
+
+/* public member function append */
+/* the processing function in the main process call this function */
+/* to append classify task to the head of the list */
+bool ThreadPool::append(ClassifyTask* task)
+{
+    /* lock the queue*/
+    m_queuelocker.lock();
+
+    /* check if the queue is full */
+    if(m_workqueue.size() >= m_max_requests)
+    {
+        m_queuelocker.unlock();
+        return false;
+    }
+
+    /* if the queue is not full */
+    /* add the task at the end of the queue */
+    m_workqueue.push_back(task);
+
+    /* unlock the queue */
+    m_queuelocker.unlock();
+
+    /* wake all the sleeping threads */
+    m_queuestat.post();
+
+    return true;
+}
+
+/* private member function worker */
+void* ThreadPool::worker(void *arg)
+{
+    ThreadPool *pool = (ThreadPool *)arg;
+    pool->run();
+    return pool;
+}
+
+/* private member function run */
+void ThreadPool::run()
+{   
+    /* initialize the vectorizer and mlp classifier */
+    /* modify here */
+    auto tfv = std::make_shared<Tfidf_vectorizer>();
+    auto mlpc = std::make_shared<MlpClassifier>();
+    
+    while (true)
+    {
+        /* wait for new request */
+        m_queuestat.wait();
+
+        /* if new task comes */
+        /* check if the task is done by other threads */
+        m_queuelocker.lock();
+        if(m_workqueue.empty()){
+            m_queuelocker.unlock();
+            continue;
+        }
+
+        /* pull out the new task */
+        ClassifyTask* newTask = m_workqueue.front();
+        m_workqueue.pop_front();
+        m_queuelocker.unlock();
+
+        /* start handle the task */
+        newTask->process();
+    }
+    
 }
 
 #endif

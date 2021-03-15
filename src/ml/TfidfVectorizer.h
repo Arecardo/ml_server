@@ -6,21 +6,13 @@
 #ifndef SRC_TFIDF_V_H
 #define SRC_TFIDF_V_H
 
-class tfidf_vectorizer
+class Tfidf_vectorizer
 {
 private:
     /* data */
 public:
-    tfidf_vectorizer(/* args */);
-    ~tfidf_vectorizer();
+    Tfidf_vectorizer(/* args */);
+    ~Tfidf_vectorizer();
 };
-
-tfidf_vectorizer::tfidf_vectorizer(/* args */)
-{
-}
-
-tfidf_vectorizer::~tfidf_vectorizer()
-{
-}
 
 #endif
